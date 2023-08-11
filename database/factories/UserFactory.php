@@ -42,11 +42,13 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(function (array $attributes) {
-            return [
+        return $this->state(
+            function (array $attributes) {
+                return [
                 'email_verified_at' => null,
-            ];
-        });
+                ];
+            }
+        );
     }
 
     /**
@@ -60,11 +62,13 @@ class UserFactory extends Factory
 
         return $this->has(
             Team::factory()
-                ->state(fn (array $attributes, User $user) => [
+                ->state(
+                    fn (array $attributes, User $user) => [
                     'name' => $user->name.'\'s Team',
                     'user_id' => $user->id,
                     'personal_team' => true,
-                ])
+                    ]
+                )
                 ->when(is_callable($callback), $callback),
             'ownedTeams'
         );

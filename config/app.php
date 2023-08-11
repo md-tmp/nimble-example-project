@@ -155,7 +155,8 @@ return [
     |
     */
 
-    'providers' => ServiceProvider::defaultProviders()->merge([
+    'providers' => ServiceProvider::defaultProviders()->merge(
+        [
         /*
          * Package Service Providers...
          */
@@ -170,7 +171,8 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\FortifyServiceProvider::class,
         App\Providers\JetstreamServiceProvider::class,
-    ])->toArray(),
+        ]
+    )->toArray(),
 
     /*
     |--------------------------------------------------------------------------
@@ -183,8 +185,10 @@ return [
     |
     */
 
-    'aliases' => Facade::defaultAliases()->merge([
+    'aliases' => Facade::defaultAliases()->merge(
+        [
         // 'Example' => App\Facades\Example::class,
-    ])->toArray(),
+        ]
+    )->toArray(),
 
 ];
