@@ -1,5 +1,9 @@
 # Nimble Google Scraper
 
+https://nimble-google-scraper-89b08cba0f2c.herokuapp.com/
+
+`main` branch is auto-deployed to Heroku after tests pass.
+
 ## Installing Dependencies
 
 Composer and NPM are used to manage dependencies.
