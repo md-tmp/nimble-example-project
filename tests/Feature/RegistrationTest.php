@@ -46,13 +46,15 @@ class RegistrationTest extends TestCase
             return;
         }
 
-        $response = $this->post('/register', [
+        $response = $this->post(
+            '/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
             'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
-        ]);
+            ]
+        );
 
         $this->assertAuthenticated();
         $response->assertRedirect(RouteServiceProvider::HOME);

@@ -15,11 +15,13 @@ class UpdatePasswordTest extends TestCase
     {
         $this->actingAs($user = User::factory()->create());
 
-        $response = $this->put('/user/password', [
+        $response = $this->put(
+            '/user/password', [
             'current_password' => 'password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
-        ]);
+            ]
+        );
 
         $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
     }
@@ -28,11 +30,13 @@ class UpdatePasswordTest extends TestCase
     {
         $this->actingAs($user = User::factory()->create());
 
-        $response = $this->put('/user/password', [
+        $response = $this->put(
+            '/user/password', [
             'current_password' => 'wrong-password',
             'password' => 'new-password',
             'password_confirmation' => 'new-password',
-        ]);
+            ]
+        );
 
         $response->assertSessionHasErrors();
 
@@ -43,11 +47,13 @@ class UpdatePasswordTest extends TestCase
     {
         $this->actingAs($user = User::factory()->create());
 
-        $response = $this->put('/user/password', [
+        $response = $this->put(
+            '/user/password', [
             'current_password' => 'password',
             'password' => 'new-password',
             'password_confirmation' => 'wrong-password',
-        ]);
+            ]
+        );
 
         $response->assertSessionHasErrors();
 

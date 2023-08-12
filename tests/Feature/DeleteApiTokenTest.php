@@ -22,11 +22,13 @@ class DeleteApiTokenTest extends TestCase
 
         $this->actingAs($user = User::factory()->withPersonalTeam()->create());
 
-        $token = $user->tokens()->create([
+        $token = $user->tokens()->create(
+            [
             'name' => 'Test Token',
             'token' => Str::random(40),
             'abilities' => ['create', 'read'],
-        ]);
+            ]
+        );
 
         $response = $this->delete('/user/api-tokens/'.$token->id);
 
