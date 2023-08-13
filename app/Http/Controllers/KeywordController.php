@@ -40,6 +40,13 @@ class KeywordController extends Controller
         $keywordsQuery = $request->user()->keywords();
         $keywordsQuery->select(['id', 'keyword', 'updated_at']);
 
+        // Search Support
+        if($request->query('search')) {
+            $searchParam = $request->query('search');
+            $keywordsQuery->where('keywords.keyword', 'LIKE', '%' . $searchParam . '%');
+            // die();
+        }
+
         // Sorting Support
         $sortKey = 'updated_at';
         $sortParam = $request->query('sort');
@@ -47,9 +54,9 @@ class KeywordController extends Controller
             $sortKey = $sortParam;
         }
 
-        $sortDirection = 'DESC';
+        $sortDirection = 'desc';
         $dirParam = $request->query('dir');
-        if ($dirParam && in_array($dirParam, ['asc', 'desc'])) {
+        if ($dirParam && in_array(strtolower($dirParam), ['asc', 'desc'])) {
             $sortDirection = $dirParam;
         }
         $keywordsQuery->orderBy($sortKey, $sortDirection);
@@ -67,9 +74,10 @@ class KeywordController extends Controller
 
         return Inertia::render(
             'Keyword/Index', [
-            'keywords' => $keywordsCollection,
-            'sort_key' => $sortKey,
-            'sort_direction' => $sortDirection
+                'keywords' => $keywordsCollection,
+                'sort_key' => $sortKey,
+                'sort_direction' => $sortDirection,
+                'search' => $request->query('search')
             ]
         );
     }

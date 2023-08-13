@@ -6,6 +6,7 @@ defineProps({
     keywords: Object,
     sort_key: String,
     sort_direction: String,
+    search: String
 })
 </script>
 
@@ -21,6 +22,7 @@ defineProps({
                     :keywords="keywords"
                     :sort-key="sort_key"
                     :sort-direction="sort_direction"
+                    :search="search"
                 />
             </div>
         </div>
