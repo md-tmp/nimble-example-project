@@ -1,8 +1,19 @@
 <?php
+/**
+ * Web Routes 
+ * php version 8.2.4
+ * 
+ * @category WebRoutes
+ * @package  NimbleExampleProject
+ * @author   Matt Dunbar <matt@mattdsworld.com>
+ * @license  Not for commercial use.
+ * @link     https://github.com/md-tmp/nimble-example-project
+ */
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\KeywordController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,5 +45,7 @@ Route::middleware(
                 return Inertia::render('Dashboard');
             }
         )->name('dashboard');
+
+        Route::resource('keywords', KeywordController::class)->only(['index']);
     }
 );
