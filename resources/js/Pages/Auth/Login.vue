@@ -84,8 +84,12 @@ const submit = () => {
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <Link href="/register" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Register</Link>
-
+                <Link
+                    href="/register"
+                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                    Register
+                </Link>
 
                 <PrimaryButton
                     class="ml-4"
@@ -96,8 +100,7 @@ const submit = () => {
                 </PrimaryButton>
             </div>
         </form>
-        
-        <div class="flex items-center justify-end mt-4">
-        </div>
+
+        <div class="flex items-center justify-end mt-4"></div>
     </AuthenticationCard>
 </template>
