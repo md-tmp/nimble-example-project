@@ -60,6 +60,7 @@ const updatedAtSortDir = nextSortDir('updated_at')
                                     sort="keyword"
                                     :dir="keywordSortDir"
                                     :active-key="sortKey"
+                                    :search="search"
                                 >
                                     Keyword
                                 </SortLink>
@@ -71,6 +72,7 @@ const updatedAtSortDir = nextSortDir('updated_at')
                                         sort="updated_at"
                                         :dir="updatedAtSortDir"
                                         :active-key="sortKey"
+                                        :search="search"
                                     >
                                         Last Updated
                                     </SortLink>
