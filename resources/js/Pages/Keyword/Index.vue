@@ -6,7 +6,7 @@ defineProps({
     keywords: Object,
     sort_key: String,
     sort_direction: String,
-    search: String
+    search: String,
 })
 </script>
 
