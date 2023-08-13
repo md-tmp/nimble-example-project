@@ -5,7 +5,7 @@ defineProps({
     sort: String,
     dir: String,
     activeKey: String,
-    search: String
+    search: String,
 })
 </script>
 

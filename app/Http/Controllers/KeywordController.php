@@ -41,9 +41,13 @@ class KeywordController extends Controller
         $keywordsQuery->select(['id', 'keyword', 'updated_at']);
 
         // Search Support
-        if($request->query('search')) {
+        if ($request->query('search')) {
             $searchParam = $request->query('search');
-            $keywordsQuery->where('keywords.keyword', 'LIKE', '%' . $searchParam . '%');
+            $keywordsQuery->where(
+                'keywords.keyword',
+                'LIKE',
+                '%' . $searchParam . '%'
+            );
             // die();
         }
 

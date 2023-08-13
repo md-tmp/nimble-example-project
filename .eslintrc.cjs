@@ -81,6 +81,8 @@ module.exports = {
       'vue/multi-word-component-names': 'off', // Rule conflicts with Jetstream generated code
       'vue/no-v-text-v-html-on-component': 'off', // Rule conflicts with Jetstream generated code
       'vue/no-v-for-template-key': 'off', // Rule conflicts with Jetstream generated code
+      'vue/no-multiple-template-root': 'off', // Rule conflicts with Jetstream generated code
+      'vue/no-v-model-argument': 'off', // Rule conflicts with Jetstream generated code
     },
   };
   

@@ -1,2 +1,29 @@
 grumphp:
-    tasks: { eslint: null, phpcs: null, phpstan: null, phpunit: null }
+    tasks:
+        eslint:
+            quiet: true
+        phpcs:
+            ignore_patterns: [
+                'config/*.php',
+                'app/Http/Controllers/Controller.php',
+                'app/Console/Kernel.php',
+                'app/Actions/Fortify/*.php',
+                'app/Actions/Jetstream/*.php',
+                'app/Http/Kernel.php',
+                'tests/*',
+                '*.blade.php',
+                'database/*',
+                '*/seeds/*',
+                'routes/*.php',
+                'public/index.php',
+                'bootstrap/app.php',
+                'app/Providers/*',
+                'app/Http/Middleware/*',
+                'app/Exceptions/*'
+            ]
+        phpstan:
+            ignore_patterns: [
+                'database/factories/UserFactory.php',
+                'routes/console.php'
+            ]
+        phpunit: null
