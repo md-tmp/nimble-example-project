@@ -204,6 +204,11 @@ class KeywordJob implements ShouldQueue
      */
     public function handle(): void
     {
+        // Random pauses rate-limit our traffic and make it look more human-like.
+        // We do this at the start of the request to make sure ChromeDriver is ready
+        // in case the Heroku Dyno was recently restarted.
+        $this->randomPause(17, 25);
+        
         // Get Chrome Driver, we use a real browser.
         $driver = $this->buildChromeDriver();
 
@@ -243,9 +248,6 @@ class KeywordJob implements ShouldQueue
 
         // Close the web browser
         $driver->quit();
-        
-        // Random pauses rate-limit our traffic and make it look more human-like.
-        $this->randomPause(17, 25);
     }
 }
 
