@@ -29,7 +29,7 @@ use App\Http\Controllers\ResultController;
 
 Route::get(
     '/', function () {
-        return redirect()->route('dashboard');
+        return redirect()->route('keywords.index');
     }
 );
 
@@ -41,12 +41,6 @@ Route::middleware(
     ]
 )->group(
     function () {
-        Route::get(
-            '/dashboard', function () {
-                return Inertia::render('Dashboard');
-            }
-        )->name('dashboard');
-
         Route::resource('keywords', KeywordController::class)->only(['index', 'show']);
         
         Route::get(
