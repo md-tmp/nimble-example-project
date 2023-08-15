@@ -75,3 +75,15 @@ Tests run on GitHub Actions with SQLite.
 PostgreSQL is suggested for local development.
 
 The Queue is currently database powered. To maximize performance Redis can be used instead (configured in Laravel .env).
+
+## Google CAPTCHAs
+
+Occasionally Google may present CAPTCHAs.
+
+An imperfect solution is implemented relying on using a real browser, human-like behavior, and rate limiting requests with random pauses.
+
+Currently, when we receive a CAPTCHA we pause for a random time between 30 minutes and 1 hour before trying again.
+
+Implementing a proxy server is recommended for production use.
+
+With Heroku, the worker dyno can be restarted via the CLI to get a new IP address and instantly unblock the queue.
