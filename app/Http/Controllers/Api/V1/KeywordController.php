@@ -137,13 +137,10 @@ class KeywordController extends Controller
         }
 
         $queueSize = Queue::size();
-        $queueTimeReadable = CarbonInterval::seconds($queueSize * 30)
-            ->cascade()->forHumans();
 
         return [
-            'success' =>
-                'Upload successful, estimated completion time: '
-                    . $queueTimeReadable,
+            'success' => true,
+            'queue_size' => $queueSize
         ];
     }
 
