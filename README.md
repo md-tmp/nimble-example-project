@@ -87,3 +87,39 @@ Currently, when we receive a CAPTCHA we pause for a random time between 30 minut
 Implementing a proxy server is recommended for production use.
 
 With Heroku, the worker dyno can be restarted via the CLI to get a new IP address and instantly unblock the queue.
+
+## API
+
+Authenticate by passing in your API Key as a Bearer token in the Authorization header.
+
+### Keywords List Endpoint
+`GET /api/v1/keywords`
+
+cURL Example:
+```
+curl --location 'http://127.0.0.1:8000/api/v1/keywords' \
+--header 'Authorization: Bearer {API_KEY_HERE}'
+```
+
+### Keyword Details (Reports) Endpoint
+`GET /api/v1/keywords/{id}`
+
+Specify a Keyword ID in the URL Path.
+
+cURL Example:
+```
+curl --location 'http://127.0.0.1:8000/api/v1/keywords/{ID_HERE}' \
+--header 'Authorization: Bearer {API_KEY_HERE}'
+```
+
+### Import Keywords Endpoint
+`POST /api/v1/keywords`
+
+POST a CSV file as import_file.
+
+cURL Example:
+```
+curl --location 'http://127.0.0.1:8000/api/v1/keywords' \
+--header 'Authorization: Bearer {API_KEY_HERE}' \
+--form 'import_file=@"/path/to/local/file.csv"'
+```
