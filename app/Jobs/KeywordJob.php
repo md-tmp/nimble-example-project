@@ -48,80 +48,180 @@ class KeywordJob implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Returns a random user agent
      * 
-     * @return void
+     * @return string Returns a User Agent string.
      * 
-     * @todo Refactor into smaller methods that can be unit tested.
+     * @todo Implement admin setting for managing user agents.
      */
-    public function handle(): void
+    protected function getUserAgent(): string
     {
-        /**
-         * @TODO At some point Google may suspect our traffic of being a bot.
-         * We should implement some sort of backoff when this happens.
-         * I have been unable to trigger the captchas with the current code.
-         * 
-         * When reports start including 0s where not expected we can start to replicate this.
-         * 
-         * Potential solutions include a significant timeout (simple), outsourcing the CAPTCHA (complex), or presenting the CAPTCHA on the frontend (complex).
-         * 
-         * I'm going to avoid intentionally getting my IP or dev server on any IP list that might encounter more frequent captchas.
-         */
-
-        // We use a real browser (Chrome) to make our traffic more human-like and avoid captchas.
-        $desiredCapabilities = DesiredCapabilities::chrome();
-        $chromeOptions = new ChromeOptions();
+        // phpcs:disable Generic.Files.LineLength.TooLong
         $userAgentList = [
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
         ];
-        $userAgent = $userAgentList[array_rand($userAgentList)];
+        // phpcs:enable
+        return $userAgentList[array_rand($userAgentList)];
+    }
+
+    /**
+     * Gets preferred language for scraper.
+     * 
+     * @return string Returns a 2-Letter Language Code (ISO 639‑1)    
+     * 
+     * @todo Implement admin setting for configuring this and other settings.
+     */
+    protected function getScraperLanguage(): string
+    {
+        return 'en';
+    }
+
+    /**
+     * Converts an array into CLI style arguments.
+     * 
+     * @param array $array Array of arguments.
+     * 
+     * @return array Array of arguments reformatted for CLI use.
+     */
+    protected function arrayToArgs(array $array): array
+    {
+        $responseArray = [];
+        foreach ($array as $key => $value) {
+            $argument = '--' . $key . '="' . $value . '"';
+            array_push($responseArray, $argument);
+        }
+        return $responseArray;
+    }
+
+    /**
+     * Configures Chrome Web Driver.
+     * 
+     * @return RemoteWebDriver Chrome Web Driver
+     * 
+     * @todo --proxy-server can be used to add HTTP proxy support in the future.
+     */
+    protected function buildChromeDriver(): RemoteWebDriver
+    {
+        $capabilities = DesiredCapabilities::chrome();
+        $chromeOptions = new ChromeOptions();
         $chromeOptions->addArguments(
+            $this->arrayToArgs(
+                [
+                    'lang' => $this->getScraperLanguage(),
+                    'accept-lang' => $this->getScraperLanguage(),
+                    'user-agent' => $this->getUserAgent()
+                ]
+            )
+        );
+        $capabilities->setCapability(ChromeOptions::CAPABILITY, $chromeOptions);
+
+        return RemoteWebDriver::create('http://localhost:9515', $capabilities);
+    }
+
+    /**
+     * Generate a report array by evaluating JavaScript on the currently loaded page.
+     * 
+     * @param RemoteWebDriver $driver Chrome Driver
+     * 
+     * @return array Report of data collected from the current page.
+     * 
+     * @todo Create an admin interface for managing $reportConfig items.
+     */
+    protected function runReport(RemoteWebDriver $driver): array
+    {
+        // phpcs:disable Generic.Files.LineLength.TooLong
+        $reportConfig = [
+            'total_links' => 'return document.querySelectorAll(\'a\').length;',
+            'total_ads' => 'return document.querySelectorAll(\'[title="Why this ad?"]\').length;',
+            'total_results' => 'return parseInt(document.querySelector(\'#result-stats\').innerHTML.match(/About (\d{1,3}(?:,\d{3})*) results/)[1].replaceAll(\',\',\'\'));'
+        ];
+        // phpcs:enable
+
+        $report = [];
+        foreach ($reportConfig as $key => $script) {
+            $report[$key] = $driver->executeScript($script);
+        }
+
+        return $report;
+    }
+
+    /**
+     * Loads google, pauses, then searches for the current job Keyword.
+     * 
+     * @param RemoteWebDriver $driver Chrome Driver to run the Google Search on.
+     * 
+     * @return void
+     * 
+     * @todo Support alternate google domains (e.g. google.co.th)
+     */
+    protected function executeGoogleSearch(RemoteWebDriver $driver): void
+    {
+        $queryString = http_build_query(
             [
-            '--lang=en', // Set Browser To English
-            '--accept-lang=en',
-            '--user-agent="' . $userAgent . '"' // Pick a random user agent (change operating systems, identifying as the latest chrome)
+                'hl' => $this->getScraperLanguage(),
+                'lr' => 'lang_' . $this->getScraperLanguage()
             ]
         );
-        $desiredCapabilities->setCapability(ChromeOptions::CAPABILITY, $chromeOptions);
+        $driver->get('https://www.google.com/?' . $queryString);
 
-        $driver = RemoteWebDriver::create('http://localhost:9515', $desiredCapabilities);
-
-        // Force English with URL Params, this could make our script easier to profile but not a concern unless running at significant scale
-        // Loading the home page alongside pauses will make our traffic seem more human-like to Google.
-        $driver->get('https://www.google.com/?hl=en&lr=lang_en');
-
-        sleep(rand(1, 5)); // Randomism: Pause for 1 to 5 seconds before searching.
+        $this->randomPause(1, 5);
 
         $driver->findElement(WebDriverBy::cssSelector('[type="Search"]'))
-            ->sendKeys($this->keyword->keyword) // fill the search box
+            ->sendKeys($this->keyword->keyword)
             ->submit();
 
-        $totalLinks = $driver->executeScript('return document.querySelectorAll(\'a\').length;');
-        // Carousels are counted as a single ad
-        // Possible implementation for counting carousel items:
-        // https://github.com/md-tmp/nimble-example-project/issues/14
-        $totalAds = $driver->executeScript('return document.querySelectorAll(\'[title="Why this ad?"]\').length;');
-        $totalResults = $driver->executeScript('return parseInt(document.querySelector(\'#result-stats\').innerHTML.match(/About (\d{1,3}(?:,\d{3})*) results/)[1].replaceAll(\',\',\'\'));');
-        $pageSource = $driver->getPageSource();
+        $this->randomPause(1, 5);
+    }
 
-        // Save result...
+    /**
+     * Sleep for a random amount of time between $min and $max.
+     * 
+     * @param int $min Minimum sleep time in seconds
+     * @param int $max Maximum sleep time in seconds
+     * 
+     * @return void
+     */
+    protected function randomPause(int $min, int $max): void
+    {
+        sleep(rand($min, $max));
+    }
+
+    /**
+     * Execute the job.
+     * 
+     * @return void
+     * 
+     * @todo Detect Google CAPTCHA and implement a backoff or CAPTCHA solver.
+     * @todo 
+     */
+    public function handle(): void
+    {
+        // Get Chrome Driver, we use a real browser.
+        $driver = $this->buildChromeDriver();
+
+        // Load Google.com, then trigger a search on the frontend.
+        $this->executeGoogleSearch($driver);
+
+        // Trigger JavaScript to collect several report items from the results page. 
+        $report = $this->runReport($driver);
+
+        // Save results to the database
         $result = $this->keyword->results()->create(
-            [
-            'total_links' => $totalLinks,
-            'total_ads' => $totalAds,
-            'total_results' => $totalResults,
-            'cache' => $pageSource
-            ]
+            array_merge(
+                $report,
+                [
+                    'cache' => $driver->getPageSource()
+                ]
+            )
         );
 
-        sleep(rand(1, 5)); // Randomism: Pause for 1 to 5 seconds before closing the browser
+        // Close the web browser
         $driver->quit();
-
-        // Randomism: Pause for 2 to 10 seconds before finishing the job.
-        // This is a pause on the current worker.
-        sleep(rand(2, 10));
+        
+        // Random pauses rate-limit our traffic and make it look more human-like.
+        $this->randomPause(2, 10);
         
     }
 }
