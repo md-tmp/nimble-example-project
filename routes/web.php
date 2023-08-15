@@ -14,6 +14,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\KeywordController;
+use App\Http\Controllers\ResultController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,11 @@ Route::middleware(
             }
         )->name('dashboard');
 
-        Route::resource('keywords', KeywordController::class)->only(['index']);
+        Route::resource('keywords', KeywordController::class)->only(['index', 'show']);
+        
+        Route::get(
+            '/results/{id}/cache',
+            [ResultController::class, 'cache']
+        )->name('results.cache');
     }
 );
