@@ -198,7 +198,9 @@ class KeywordJob implements ShouldQueue
      * @return void
      * 
      * @todo Detect Google CAPTCHA and implement a backoff or CAPTCHA solver.
-     * @todo 
+     * @todo Move worker into a separate class to eliminate concerns around Laravel
+     * serializing properties for the queueing implementation. This would allow us
+     * to move $driver into a class property, and to more easily mock/test.
      */
     public function handle(): void
     {
@@ -208,7 +210,7 @@ class KeywordJob implements ShouldQueue
         // Load Google.com, then trigger a search on the frontend.
         $this->executeGoogleSearch($driver);
 
-        // Trigger JavaScript to collect several report items from the results page. 
+        // Trigger JavaScript to collect several report items from the results page.
         $report = $this->runReport($driver);
 
         // Save results to the database
@@ -220,6 +222,11 @@ class KeywordJob implements ShouldQueue
                 ]
             )
         );
+
+        // Update updated_at for keyword
+        $this->keyword->refresh();
+        $this->keyword->touch();
+        $this->keyword->save();
 
         // Close the web browser
         $driver->quit();

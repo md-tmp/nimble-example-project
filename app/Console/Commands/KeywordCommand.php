@@ -56,7 +56,6 @@ class KeywordCommand extends Command
             'keyword' => $keywordArg
             ]
         );
-        $keyword->touch();
         $keyword->save();
 
         $this->info("Keyword Saved: " . $keywordArg);
