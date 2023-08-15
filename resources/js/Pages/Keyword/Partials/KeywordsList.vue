@@ -2,7 +2,7 @@
 import ActionSection from '@/Components/ActionSection.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SortLink from '@/Components/SortLink.vue'
-import { useForm } from '@inertiajs/vue3'
+import { Link, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     keywords: Object,
@@ -114,7 +114,12 @@ const updatedAtSortDir = nextSortDir('updated_at')
                             class="flex items-center justify-between"
                         >
                             <div class="break-all">
-                                {{ keyword.keyword }}
+                                <Link
+                                    :href="route('keywords.show', keyword.id)"
+                                    class="underline text-sm text-gray-600 hover:text-gray-900"
+                                >
+                                    {{ keyword.keyword }}
+                                </Link>
                             </div>
 
                             <div class="flex items-center ml-2">

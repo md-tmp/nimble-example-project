@@ -15,6 +15,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Inertia\Response;
+use App\Models\Keyword;
 
 /**
  * KeywordController
@@ -34,7 +35,7 @@ class KeywordController extends Controller
      * 
      * @return Response Inertia Response
      */
-    public function index(Request $request) : Response
+    public function index(Request $request): Response
     {
 
         $keywordsQuery = $request->user()->keywords();
@@ -82,6 +83,44 @@ class KeywordController extends Controller
                 'sort_key' => $sortKey,
                 'sort_direction' => $sortDirection,
                 'search' => $request->query('search')
+            ]
+        );
+    }
+
+    /**
+     * Show Results for a given Keyword.
+     * 
+     * @param Request $request Laravel HTTP Request
+     * @param string  $id      Requested Keyword ID
+     * 
+     * @return Response Inertia Response
+     */
+    public function show(Request $request, string $id): Response
+    {
+        $keyword = Keyword::find($id);
+        // Check that keyword is found, or return 404.
+        if ($keyword === null) {
+            return abort(404);
+        }
+
+        // Check that the user owns the keyword, or return 404.
+        if ($keyword->user_id !== $request->user()->id) {
+            return abort(404);
+        }
+
+        $results = $keyword->results->map(
+            function ($result) {
+                return $result->toArray() + [
+                'created_at_ago' => optional($result->created_at)->diffForHumans(),
+                ];
+            }
+        );
+
+        // 
+        return Inertia::render(
+            'Keyword/Show', [
+                'keyword' => $keyword->keyword,
+                'reports' => $results
             ]
         );
     }
