@@ -31,7 +31,7 @@ Run Laravel Built-In Dev Server:
 php artisan serve
 ```
 
-, run it on port 9515 (default).
+Run ChromeDriver on port 9515 (default).
 ```
 ./chromedriver
 ```
@@ -80,7 +80,7 @@ The Queue is currently database powered. To maximize performance Redis can be us
 
 Occasionally Google may present CAPTCHAs.
 
-An imperfect solution is implemented relying on using a real browser, human-like behavior, and rate limiting requests with random pauses.
+An imperfect solution is implemented by relying on using a real browser, human-like behavior, and rate-limiting requests with random pauses.
 
 Currently, when we receive a CAPTCHA we pause for a random time between 30 minutes and 1 hour before trying again.
 
@@ -97,7 +97,7 @@ Authenticate by passing in your API Key as a Bearer token in the Authorization h
 
 cURL Example:
 ```
-curl --location 'http://127.0.0.1:8000/api/v1/keywords' \
+curl --location 'https://nimble-google-scraper-89b08cba0f2c.herokuapp.com/api/v1/keywords' \
 --header 'Authorization: Bearer {API_KEY_HERE}'
 ```
 
@@ -108,7 +108,7 @@ Specify a Keyword ID in the URL Path.
 
 cURL Example:
 ```
-curl --location 'http://127.0.0.1:8000/api/v1/keywords/{ID_HERE}' \
+curl --location 'https://nimble-google-scraper-89b08cba0f2c.herokuapp.com/api/v1/keywords/{ID_HERE}' \
 --header 'Authorization: Bearer {API_KEY_HERE}'
 ```
 
@@ -119,7 +119,7 @@ POST a CSV file as import_file.
 
 cURL Example:
 ```
-curl --location 'http://127.0.0.1:8000/api/v1/keywords' \
+curl --location 'https://nimble-google-scraper-89b08cba0f2c.herokuapp.com/api/v1/keywords' \
 --header 'Authorization: Bearer {API_KEY_HERE}' \
 --form 'import_file=@"/path/to/local/file.csv"'
 ```
