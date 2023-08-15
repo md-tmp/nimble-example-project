@@ -115,7 +115,7 @@ class KeywordJob implements ShouldQueue
                     'lang' => $this->getScraperLanguage(),
                     'accept-lang' => $this->getScraperLanguage(),
                     'user-agent' => $this->getUserAgent(),
-                    'headless' => false
+                    // 'headless' => false
                 ]
             )
         );
@@ -197,7 +197,7 @@ class KeywordJob implements ShouldQueue
      * 
      * @return void
      * 
-     * @todo Detect Google CAPTCHA and implement a backoff or CAPTCHA solver.
+     * @todo Progressively increase backoff time.
      * @todo Move worker into a separate class to eliminate concerns around Laravel
      * serializing properties for the queueing implementation. This would allow us
      * to move $driver into a class property, and to more easily mock/test.
@@ -210,8 +210,21 @@ class KeywordJob implements ShouldQueue
         // Load Google.com, then trigger a search on the frontend.
         $this->executeGoogleSearch($driver);
 
+        if (str_contains($driver->getCurrentUrl(), '/sorry/index?continue=')) {
+            // We encountered a captcha... randomPause then start again.
+            
+            // Close the web browser
+            $driver->quit();
+            $this->randomPause(1800, 3600); // Pause for 30 mins to 1 hr
+            $this->handle();
+            return;
+        }
+
         // Trigger JavaScript to collect several report items from the results page.
         $report = $this->runReport($driver);
+
+        // Save Keyword in case it doesn't exist yet.
+        $this->keyword->save();
 
         // Save results to the database
         $result = $this->keyword->results()->create(
@@ -232,8 +245,7 @@ class KeywordJob implements ShouldQueue
         $driver->quit();
         
         // Random pauses rate-limit our traffic and make it look more human-like.
-        $this->randomPause(2, 10);
-        
+        $this->randomPause(17, 25);
     }
 }
 
