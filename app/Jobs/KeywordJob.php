@@ -115,7 +115,7 @@ class KeywordJob implements ShouldQueue
                     'lang' => $this->getScraperLanguage(),
                     'accept-lang' => $this->getScraperLanguage(),
                     'user-agent' => $this->getUserAgent(),
-                    // 'headless' => false
+                    'headless' => false
                 ]
             )
         );
