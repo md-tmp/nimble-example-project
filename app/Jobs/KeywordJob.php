@@ -89,7 +89,10 @@ class KeywordJob implements ShouldQueue
     {
         $responseArray = [];
         foreach ($array as $key => $value) {
-            $argument = '--' . $key . '="' . $value . '"';
+            $argument = '--' . $key;
+            if ($value !== false) {
+                $argument .= '="' . $value . '"';
+            }
             array_push($responseArray, $argument);
         }
         return $responseArray;
@@ -111,7 +114,8 @@ class KeywordJob implements ShouldQueue
                 [
                     'lang' => $this->getScraperLanguage(),
                     'accept-lang' => $this->getScraperLanguage(),
-                    'user-agent' => $this->getUserAgent()
+                    'user-agent' => $this->getUserAgent(),
+                    'headless' => false
                 ]
             )
         );
