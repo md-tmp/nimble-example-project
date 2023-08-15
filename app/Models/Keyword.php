@@ -15,7 +15,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\User;
+use App\Models\Result;
+use App\Exceptions\ModelMustBeSavedException;
+use App\Jobs\KeywordJob;
 
 /**
  * Keyword Model
@@ -31,6 +35,11 @@ class Keyword extends Model
     use HasFactory;
 
     /**
+     * Fillable fields for mass-assignment
+     */
+    protected $fillable = ['user_id', 'keyword'];
+
+    /**
      * Get the User that owns this Keyword.
      * 
      * @return BelongsTo Returns Eloquent BelongsTo Relation
@@ -38,5 +47,29 @@ class Keyword extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+    
+    /**
+     * Get Results for this Keyword.
+     * 
+     * @return HasMany Returns Eloquent HasMany Relation
+     */
+    public function results(): HasMany
+    {
+        return $this->hasMany(Result::class);
+    }
+
+    /**
+     * Enqueues generating a new report.
+     * 
+     * @return void
+     */
+    public function enqueueGenerateReport(): void
+    {
+        if (!$this->id) {
+            throw new ModelMustBeSavedException('Keyword must be saved.');
+        }
+
+        KeywordJob::dispatch($this);
     }
 }
