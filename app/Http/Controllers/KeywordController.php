@@ -14,8 +14,12 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use \Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use App\Models\Keyword;
+use Illuminate\Support\Facades\Queue;
+use Carbon\CarbonInterval;
+use Illuminate\Validation\ValidationException;
 
 /**
  * KeywordController
@@ -49,7 +53,6 @@ class KeywordController extends Controller
                 'LIKE',
                 '%' . $searchParam . '%'
             );
-            // die();
         }
 
         // Sorting Support
@@ -67,7 +70,7 @@ class KeywordController extends Controller
         $keywordsQuery->orderBy($sortKey, $sortDirection);
 
         // Query & Pagination
-        $keywordsCollection = $keywordsQuery->paginate(5)->withQueryString()
+        $keywordsCollection = $keywordsQuery->paginate(10)->withQueryString()
             ->through(
                 function ($keyword) {
                     return  $keyword->toArray() + [
@@ -76,13 +79,20 @@ class KeywordController extends Controller
                     ];
                 }
             );
+        
+        $queueSize = Queue::size();
+        $queueTime = $queueSize * 30;
+        $queueTimeReadable = CarbonInterval::seconds($queueTime)
+            ->cascade()->forHumans();
 
         return Inertia::render(
             'Keyword/Index', [
                 'keywords' => $keywordsCollection,
                 'sort_key' => $sortKey,
                 'sort_direction' => $sortDirection,
-                'search' => $request->query('search')
+                'search' => $request->query('search'),
+                'queue_size' => $queueSize,
+                'queue_time' => $queueTimeReadable
             ]
         );
     }
@@ -116,11 +126,81 @@ class KeywordController extends Controller
             }
         );
 
-        // 
         return Inertia::render(
             'Keyword/Show', [
                 'keyword' => $keyword->keyword,
                 'reports' => $results
+            ]
+        );
+    }
+
+    /**
+     * Process Import CSV Upload.
+     *
+     * @param Request $request Laravel HTTP Request
+     * 
+     * @return Response Inertia Response
+     */
+    public function store(Request $request)
+    {
+        $request->validate(
+            [
+            'import_file' => 'required|mimes:csv,txt'
+            ]
+        );
+
+        $csvContents = $request->file('import_file')->get();
+        $csvLines = explode("\n", $csvContents);
+        $csvHeaders = str_getcsv(strtolower($csvLines[0]));
+
+        if (sizeof($csvLines) < 2) {
+            throw ValidationException::withMessages(
+                ['import_file' => 'CSV must include at least 1 keyword']
+            );
+        }
+
+        // Implemented per requirements; this limit can be increased substantially.
+        // Switch to Redis queue driver to speed up upload processing at scale.
+        if (sizeof($csvLines) > 101) {
+            throw ValidationException::withMessages(
+                ['import_file' =>
+                    'CSV must contain less than or equal to 100 keywords']
+            );
+        }
+
+        $keywordColumnIndex = array_search('keyword', $csvHeaders);
+        if ($keywordColumnIndex === false) {
+            throw ValidationException::withMessages(
+                ['import_file' =>
+                    'CSV must contain a column with the header Keyword']
+            );
+        }
+
+        $userId = $request->user()->id;
+
+        for ($i = 1; $i < sizeof($csvLines); $i++) {
+            $csvLine = str_getcsv($csvLines[$i]);
+            $keyword = $csvLine[$keywordColumnIndex];
+            
+            $keywordObj = Keyword::firstOrNew(
+                [
+                'user_id' => $userId,
+                'keyword' => $keyword
+                ]
+            );
+            $keywordObj->save();
+            $keywordObj->enqueueGenerateReport();
+        }
+
+        $queueSize = Queue::size();
+        $queueTimeReadable = CarbonInterval::seconds($queueSize * 30)
+            ->cascade()->forHumans();
+
+        return back()->with(
+            'flash', [
+                'upload_success' =>
+                    'Upload successful, estimated completion time: '
+                        . $queueTimeReadable,
             ]
         );
     }

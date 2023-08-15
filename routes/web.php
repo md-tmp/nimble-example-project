@@ -41,7 +41,7 @@ Route::middleware(
     ]
 )->group(
     function () {
-        Route::resource('keywords', KeywordController::class)->only(['index', 'show']);
+        Route::resource('keywords', KeywordController::class)->only(['index', 'show', 'store']);
         
         Route::get(
             '/results/{id}/cache',
